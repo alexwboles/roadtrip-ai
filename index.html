@@ -8,43 +8,63 @@
 </head>
 <body>
 <header class="hero">
-  <h1>RoadTrip AI</h1>
-  <p>Itinerary, fuel costs and full trip budget — planned in minutes. Works offline, no account, no API keys.</p>
+  <svg class="route-line" viewBox="0 0 1440 64" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M-20,40 C240,40 320,14 560,19 C800,24 880,49 1120,42 C1280,37 1360,30 1460,32"
+          fill="none" stroke="#0f766e" stroke-width="3" stroke-dasharray="12 10" opacity="0.55"/>
+    <circle cx="240" cy="38" r="6" fill="#e8a33d"/>
+    <circle cx="560" cy="19" r="6" fill="#e8a33d"/>
+    <circle cx="880" cy="47" r="6" fill="#e8a33d"/>
+    <circle cx="1120" cy="42" r="6" fill="#e8a33d"/>
+  </svg>
+  <div class="hero-inner">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">◈</span>
+      <div>
+        <h1>RoadTrip <span class="ai">AI</span></h1>
+        <p>Itinerary, fuel costs and full trip budget — planned in minutes. Works offline, no account, no API keys.</p>
+      </div>
+    </div>
+  </div>
 </header>
 
 <main class="wrap">
-  <section class="card">
-    <h2>Your trip</h2>
-    <div class="form-grid">
-      <label>Trip name <input id="tripName" type="text" placeholder="e.g. Route 66 adventure"></label>
-      <label>Days <input id="days" type="number" min="1" max="60" value="4"></label>
-      <label>Origin <input id="origin" type="text" placeholder="Chicago, IL"></label>
-      <label>Destination <input id="destination" type="text" placeholder="Santa Monica, CA"></label>
-      <label>Total distance (miles) <input id="distance" type="number" min="0" value="500"></label>
-      <label>Vehicle MPG <input id="mpg" type="number" min="1" value="28"></label>
-      <label>Gas price ($/gal) <input id="gasPrice" type="number" min="0" step="0.01" value="3.50"></label>
-      <label>Lodging ($/night) <input id="lodging" type="number" min="0" value="120"></label>
-      <label>Nights <input id="nights" type="number" min="0" value="3"></label>
-      <label>Food ($/day) <input id="food" type="number" min="0" value="60"></label>
-      <label>Activities & extras ($) <input id="activities" type="number" min="0" value="100"></label>
-    </div>
-  </section>
+  <div class="planner">
+    <section class="card brief">
+      <p class="kicker">Expedition brief</p>
+      <h2>Your trip</h2>
+      <div class="form-grid">
+        <label class="field span2">Trip name <input id="tripName" type="text" placeholder="e.g. Route 66 adventure"></label>
+        <label class="field">Days <input id="days" type="number" min="1" max="60" value="4"></label>
+        <label class="field">Total distance (miles) <input id="distance" type="number" min="0" value="500"></label>
+        <label class="field">Origin <input id="origin" type="text" placeholder="Chicago, IL"></label>
+        <label class="field">Destination <input id="destination" type="text" placeholder="Santa Monica, CA"></label>
+        <label class="field">Vehicle MPG <input id="mpg" type="number" min="1" value="28"></label>
+        <label class="field">Gas price ($/gal) <input id="gasPrice" type="number" min="0" step="0.01" value="3.50"></label>
+        <label class="field">Lodging ($/night) <input id="lodging" type="number" min="0" value="120"></label>
+        <label class="field">Nights <input id="nights" type="number" min="0" value="3"></label>
+        <label class="field">Food ($/day) <input id="food" type="number" min="0" value="60"></label>
+        <label class="field">Activities & extras ($) <input id="activities" type="number" min="0" value="100"></label>
+      </div>
+    </section>
 
-  <section class="card">
-    <h2>Stops along the way</h2>
-    <div class="form-grid">
-      <label>Stop name <input id="wpName" type="text" placeholder="Grand Canyon"></label>
-      <label>Notes <input id="wpNotes" type="text" placeholder="Sunrise at the South Rim"></label>
-    </div>
-    <div class="actions"><button id="addWp">Add stop</button></div>
-    <div id="wpList" class="wp-list"></div>
-  </section>
+    <section class="card stops">
+      <p class="kicker">Waypoints</p>
+      <h2>Stops along the way</h2>
+      <div class="form-grid">
+        <label class="field">Stop name <input id="wpName" type="text" placeholder="Grand Canyon"></label>
+        <label class="field">Notes <input id="wpNotes" type="text" placeholder="Sunrise at the South Rim"></label>
+      </div>
+      <div class="actions"><button id="addWp" class="btn">Add stop</button></div>
+      <div id="wpList" class="wp-list"></div>
+    </section>
+  </div>
 
   <div class="actions center"><button id="planBtn" class="primary big">Plan my road trip</button></div>
 
-  <div id="result" class="card" style="display:none"></div>
+  <div id="result" class="card journey" style="display:none"></div>
 
   <section class="card">
+    <p class="kicker">Archive</p>
     <h2>Saved trips</h2>
     <div id="savedList"><p class="muted">No saved trips yet.</p></div>
   </section>

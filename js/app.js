@@ -15,7 +15,7 @@
   function renderWaypoints() {
     const el = $("wpList");
     el.innerHTML = waypoints.map((w, i) =>
-      "<div class='wp-row'><span><strong>" + (i + 1) + ".</strong> " + escapeHtml(w.name) +
+      "<div class='wp-row'><span class='wp-dot'>" + (i + 1) + "</span><span class='wp-body'><strong>" + escapeHtml(w.name) + "</strong>" +
       (w.notes ? " <span class='muted'>— " + escapeHtml(w.notes) + "</span>" : "") + "</span>" +
       "<button class='danger' data-wp='" + i + "'>Remove</button></div>"
     ).join("") || "<p class='muted'>No stops yet — add your first stop above.</p>";
@@ -46,8 +46,9 @@
       foodPerDay: v.food, days: days, activitiesCost: v.activitiesCost
     });
 
-    let html = "<h2>" + escapeHtml(v.name) + "</h2>";
-    if (v.origin || v.destination) html += "<p class='muted'>" + escapeHtml(v.origin) + " → " + escapeHtml(v.destination) + "</p>";
+    let html = "<div class='journey-head'><p class='kicker'>Journey board</p><h2>" + escapeHtml(v.name) + "</h2>";
+    if (v.origin || v.destination) html += "<p class='muted route'>" + escapeHtml(v.origin) + " → " + escapeHtml(v.destination) + "</p>";
+    html += "</div>";
 
     html += "<div class='stats'>";
     html += stat("Fuel", money(fuel.cost), fuel.gallons + " gal");
