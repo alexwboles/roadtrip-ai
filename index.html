@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadTrip AI — road trip planner</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="hero">
+  <h1>🚗 RoadTrip AI</h1>
+  <p>Itinerary, fuel costs and full trip budget — planned in minutes. Works offline, no account, no API keys.</p>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>Your trip</h2>
+    <div class="form-grid">
+      <label>Trip name <input id="tripName" type="text" placeholder="e.g. Route 66 adventure"></label>
+      <label>Days <input id="days" type="number" min="1" max="60" value="4"></label>
+      <label>Origin <input id="origin" type="text" placeholder="Chicago, IL"></label>
+      <label>Destination <input id="destination" type="text" placeholder="Santa Monica, CA"></label>
+      <label>Total distance (miles) <input id="distance" type="number" min="0" value="500"></label>
+      <label>Vehicle MPG <input id="mpg" type="number" min="1" value="28"></label>
+      <label>Gas price ($/gal) <input id="gasPrice" type="number" min="0" step="0.01" value="3.50"></label>
+      <label>Lodging ($/night) <input id="lodging" type="number" min="0" value="120"></label>
+      <label>Nights <input id="nights" type="number" min="0" value="3"></label>
+      <label>Food ($/day) <input id="food" type="number" min="0" value="60"></label>
+      <label>Activities & extras ($) <input id="activities" type="number" min="0" value="100"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Stops along the way</h2>
+    <div class="form-grid">
+      <label>Stop name <input id="wpName" type="text" placeholder="Grand Canyon"></label>
+      <label>Notes <input id="wpNotes" type="text" placeholder="Sunrise at the South Rim"></label>
+    </div>
+    <div class="actions"><button id="addWp">Add stop</button></div>
+    <div id="wpList" class="wp-list"></div>
+  </section>
+
+  <div class="actions center"><button id="planBtn" class="primary big">Plan my road trip</button></div>
+
+  <div id="result" class="card" style="display:none"></div>
+
+  <section class="card">
+    <h2>Saved trips</h2>
+    <div id="savedList"><p class="muted">No saved trips yet.</p></div>
+  </section>
+</main>
+
+<footer class="foot"><p>RoadTrip AI · 100% local — your trips never leave this browser.</p></footer>
+
+<script src="js/logic.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
