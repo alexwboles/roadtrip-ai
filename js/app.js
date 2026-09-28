@@ -46,13 +46,13 @@
       foodPerDay: v.food, days: days, activitiesCost: v.activitiesCost
     });
 
-    let html = "<h2>🗺️ " + escapeHtml(v.name) + "</h2>";
+    let html = "<h2>" + escapeHtml(v.name) + "</h2>";
     if (v.origin || v.destination) html += "<p class='muted'>" + escapeHtml(v.origin) + " → " + escapeHtml(v.destination) + "</p>";
 
     html += "<div class='stats'>";
-    html += stat("⛽ Fuel", money(fuel.cost), fuel.gallons + " gal");
-    html += stat("🕐 Drive time", fuel.distanceMi ? driveTimeHours(v.distanceMi, 55) + " h" : "—", "at ~55 mph avg");
-    html += stat("💰 Total budget", money(budget.total), money(perDayCost(budget.total, days)) + " / day");
+    html += stat("Fuel", money(fuel.cost), fuel.gallons + " gal");
+    html += stat("Drive time", fuel.distanceMi ? driveTimeHours(v.distanceMi, 55) + " h" : "—", "at ~55 mph avg");
+    html += stat("Total budget", money(budget.total), money(perDayCost(budget.total, days)) + " / day");
     html += "</div>";
 
     html += "<h3>Day-by-day itinerary</h3>";
@@ -68,7 +68,7 @@
       row("Food (" + days + " days)", budget.food) + row("Activities & extras", budget.activities) +
       "<tr class='total'><td>Total</td><td>" + money(budget.total) + "</td></tr></tbody></table>";
 
-    html += "<h3>🚗 Car packing checklist</h3><ul class='pack'>";
+    html += "<h3>Car packing checklist</h3><ul class='pack'>";
     const packed = JSON.parse(localStorage.getItem("roadtrip.packed.v1") || "[]");
     html += CAR_ESSENTIALS.map((c, i) =>
       "<li><label><input type='checkbox' data-pack='" + i + "'" + (packed.includes(i) ? " checked" : "") + "> " + escapeHtml(c) + "</label></li>"
