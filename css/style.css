@@ -12,7 +12,7 @@
   --accent-soft: #e0f0ee;
   --rust: #c2703d;
   --pine: #14261f;
-  --radius: 14px;
+  --radius: 0;
   --shadow: 0 1px 2px rgba(50,60,40,.07), 0 12px 30px -16px rgba(50,60,40,.28);
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --serif: Georgia, "Times New Roman", serif;
@@ -34,7 +34,7 @@ button { font: inherit; }
 .hero-inner { max-width: 1140px; margin: 0 auto; padding: 2rem 1.4rem 3.4rem; position: relative; }
 .brand { display: flex; gap: 1rem; align-items: center; }
 .mark {
-  width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 0; flex-shrink: 0;
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.3);
@@ -43,7 +43,7 @@ button { font: inherit; }
 .brand h1 { font-size: 1.9rem; margin: 0; display: flex; align-items: center; gap: .5rem; letter-spacing: 0; }
 .brand .ai {
   font-size: .66rem; font-weight: 800; letter-spacing: .1em;
-  background: var(--accent); color: #fff; border-radius: 6px; padding: .18rem .5rem;
+  background: var(--accent); color: #fff; border-radius: 0; padding: .18rem .5rem;
 }
 .brand p { margin: .35rem 0 0; color: #b9c4ae; font-size: .92rem; max-width: 60ch; }
 
@@ -70,7 +70,7 @@ button { font: inherit; }
 .field input {
   display: block; margin-top: .35rem;
   font: inherit; color: var(--ink); font-weight: 400;
-  padding: .62rem .75rem; border: 1.5px solid var(--line); border-radius: 10px;
+  padding: .62rem .75rem; border: 1.5px solid var(--line); border-radius: 0;
   background: #fff; width: 100%;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
@@ -81,22 +81,22 @@ button { font: inherit; }
 .actions.center { justify-content: center; margin: 1.6rem 0; }
 
 .btn {
-  background: var(--accent); color: #fff; border: 0; border-radius: 10px;
+  background: var(--accent); color: #fff; border: 0; border-radius: 0;
   padding: .65rem 1.25rem; font-weight: 700; cursor: pointer;
   box-shadow: 0 6px 14px -8px rgba(15,118,110,.8), inset 0 1px 0 rgba(255,255,255,.25);
   transition: transform .15s ease, background .15s ease;
 }
 .btn:hover { background: var(--accent-deep); transform: translateY(-1px); }
 button.primary {
-  background: var(--accent); color: #fff; border: 0; border-radius: 12px;
+  background: var(--accent); color: #fff; border: 0; border-radius: 0;
   padding: .8rem 1.6rem; font-weight: 700; cursor: pointer;
   box-shadow: 0 8px 18px -8px rgba(15,118,110,.8), inset 0 1px 0 rgba(255,255,255,.25);
   transition: transform .15s ease, background .15s ease;
 }
 button.primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
-button.primary.big { font-size: 1.05rem; padding: .95rem 2.4rem; border-radius: 14px; }
+button.primary.big { font-size: 1.05rem; padding: .95rem 2.4rem; border-radius: 0; }
 button.danger {
-  background: transparent; color: #a33; border: 1.5px solid #e5c9c2; border-radius: 8px;
+  background: transparent; color: #a33; border: 1.5px solid #e5c9c2; border-radius: 0;
   padding: .4rem .8rem; font-size: .83rem; font-weight: 650; cursor: pointer;
   transition: background .15s ease, color .15s ease;
 }
@@ -130,7 +130,7 @@ button.link:hover { text-decoration: underline; }
 .route { font-family: var(--mono); font-size: .92rem; margin-top: .3rem; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; margin: 1.2rem 0 1.6rem; }
 .stat {
-  background: var(--pine); color: #f0e9d6; border-radius: 12px; padding: 1.1rem 1.2rem;
+  background: var(--pine); color: #f0e9d6; border-radius: 0; padding: 1.1rem 1.2rem;
   position: relative; overflow: hidden;
 }
 .stat::after {
@@ -157,13 +157,13 @@ button.link:hover { text-decoration: underline; }
 .day ul { margin: .2rem 0; padding-left: 1.2rem; }
 .day li { margin-bottom: .3rem; }
 
-table.budget { width: 100%; border-collapse: collapse; font-size: .95rem; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+table.budget { width: 100%; border-collapse: collapse; font-size: .95rem; background: #fff; border: 1px solid var(--line); border-radius: 0; overflow: hidden; }
 table.budget td { padding: .7rem 1rem; border-bottom: 1px solid #f0e9d6; }
 table.budget td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 table.budget tr.total td { background: var(--accent-soft); font-weight: 800; color: var(--accent-deep); border-bottom: 0; }
 
 ul.pack { list-style: none; margin: .5rem 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .4rem 1.2rem; }
-ul.pack li label { display: flex; align-items: center; gap: .6rem; cursor: pointer; padding: .45rem .6rem; border-radius: 8px; transition: background .12s ease; }
+ul.pack li label { display: flex; align-items: center; gap: .6rem; cursor: pointer; padding: .45rem .6rem; border-radius: 0; transition: background .12s ease; }
 ul.pack li label:hover { background: #faf6ea; }
 ul.pack input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
 
