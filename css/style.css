@@ -77,6 +77,9 @@ button { font: inherit; }
 .field input:focus {
   outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
 }
+.field.check { display: flex; align-items: center; gap: .6rem; padding-top: 1.4rem; }
+.field.check input { width: 18px; height: 18px; margin-top: 0; accent-color: var(--accent); flex-shrink: 0; }
+.field.check span { font-weight: 650; }
 .actions { margin-top: 1rem; display: flex; gap: .7rem; }
 .actions.center { justify-content: center; margin: 1.6rem 0; }
 
@@ -122,6 +125,14 @@ button.link:hover { text-decoration: underline; }
   box-shadow: 0 0 0 4px var(--accent-soft);
 }
 .wp-body { flex: 1; }
+.wp-btns { display: flex; gap: .35rem; }
+.wp-btns button {
+  font: inherit; font-weight: 700; cursor: pointer;
+  background: #fff; border: 1.5px solid var(--line); border-radius: 0;
+  padding: .35rem .55rem; line-height: 1; color: var(--ink-soft);
+}
+.wp-btns button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-deep); }
+.wp-btns button:disabled { opacity: .35; cursor: not-allowed; }
 
 /* ---------- journey result ---------- */
 .journey { border-top: 4px solid var(--accent); }

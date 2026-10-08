@@ -38,6 +38,45 @@ check "perDayCost divides correctly" node -e "
 check "CAR_ESSENTIALS has 10 items" node -e "
   const L=require('./js/logic.js');
   if(!Array.isArray(L.CAR_ESSENTIALS)||L.CAR_ESSENTIALS.length!==10) throw new Error('bad essentials');"
+check "logic exports new functions" node -e "
+  const L=require('./js/logic.js');
+  for (const f of ['reorderStop','dailyDriveHours','fillUps','tripSummaryText']) {
+    if(typeof L[f]!=='function') throw new Error('missing '+f);
+  }"
+check "round trip doubles distance and fuel" node -e "
+  const L=require('./js/logic.js');
+  const f=L.estimateFuel({distanceMi:500,mpg:25,gasPrice:4,roundTrip:true});
+  if(f.distanceMi!==1000||f.oneWayMi!==500||f.gallons!==40||f.cost!==160||f.roundTrip!==true) throw new Error(JSON.stringify(f));
+  const one=L.estimateFuel({distanceMi:500,mpg:25,gasPrice:4});
+  if(one.distanceMi!==500||one.roundTrip!==false) throw new Error('one-way broken: '+JSON.stringify(one));"
+check "reorderStop moves waypoints, bad indexes no-op" node -e "
+  const L=require('./js/logic.js');
+  const r=L.reorderStop([{name:'a'},{name:'b'},{name:'c'}],0,2);
+  if(r.map(x=>x.name).join('')!=='bca') throw new Error(JSON.stringify(r.map(x=>x.name)));
+  const d=L.reorderStop([{name:'a'},{name:'b'},{name:'c'}],2,0);
+  if(d.map(x=>x.name).join('')!=='cab') throw new Error('down move');
+  const bad=L.reorderStop([{name:'a'}],0,5);
+  if(bad.length!==1||bad[0].name!=='a') throw new Error('out-of-range should be no-op');"
+check "daily drive time + fill-ups math" node -e "
+  const L=require('./js/logic.js');
+  if(L.dailyDriveHours(550,2)!==5) throw new Error('daily drive: '+L.dailyDriveHours(550,2));
+  if(L.dailyDriveHours(550)!==10) throw new Error('single day default');
+  if(L.fillUps(20,12)!==2) throw new Error('fillups 20/12');
+  if(L.fillUps(12,12)!==1) throw new Error('exact tank');
+  if(L.fillUps(0,12)!==0) throw new Error('zero gallons');"
+check "tripSummaryText builds shareable text" node -e "
+  const L=require('./js/logic.js');
+  const t=L.tripSummaryText({name:'Desert run',origin:'Phoenix',destination:'Moab',roundTrip:true,distanceMi:1000,driveHours:18,dailyDriveHours:9,gallons:40,fuelCost:140,fillUps:4,lodging:300,food:200,activities:60,total:700,perDay:175,days:4,itinerary:[{day:1,stops:[{name:'GC',notes:'sunrise'}]},{day:2,stops:[]}]});
+  if(!/Desert run — Phoenix → Moab/.test(t)) throw new Error('header: '+t.split('\n')[0]);
+  if(!/round trip/.test(t)) throw new Error('roundtrip flag');
+  if(!/Day 1: GC \(sunrise\)/.test(t)) throw new Error('day1 stops');
+  if(!/Day 2: open road/.test(t)) throw new Error('day2 empty');
+  if(!/\\\$700\\.00/.test(t)) throw new Error('total money');"
+check "new UI wiring present" bash -c "
+  grep -q 'id=\"roundTrip\"' index.html && grep -q 'id=\"tankGal\"' index.html &&
+  grep -q 'copySummary' js/app.js && grep -q 'data-wpup' js/app.js &&
+  grep -q 'data-wpdn' js/app.js && grep -q 'tripSummaryText' js/app.js &&
+  grep -q 'dailyDriveHours' js/app.js && grep -q 'wp-btns' css/style.css"
 
 echo "--- smoke: $pass passed, $fail failed ---"
 exit $((fail>0))

@@ -6,9 +6,10 @@ Road trip planner: day-by-day itinerary builder, fuel cost estimator, and full t
 
 ## Features
 
-- Origin → destination + unlimited waypoints with notes
-- Day-by-day itinerary (stops auto-distributed across days)
-- Fuel cost estimator (distance, MPG, gas price → gallons + cost)
+- Origin → destination + unlimited waypoints with notes — reorder stops with ↑/↓
+- Day-by-day itinerary (stops auto-distributed across days) with average drive time per day
+- Fuel cost estimator (distance, MPG, gas price → gallons + cost), round-trip mode, and fill-up count from your tank size
+- Copy trip summary — one tap copies a plain-text trip brief for sharing
 - Drive-time estimate at average highway speed
 - Full budget summary: fuel, lodging, food, activities + per-day cost
 - Car packing checklist (persists separately)

@@ -37,5 +37,27 @@ flow "per-day cost rounds to cents" "
   const L=require('./js/logic.js');
   if(L.perDayCost(100,3)!==33.33) throw new Error('bad rounding: '+L.perDayCost(100,3));"
 
+flow "round trip doubles fuel for the drive home" "
+  const L=require('./js/logic.js');
+  const f=L.estimateFuel({distanceMi:600,mpg:30,gasPrice:3.5,roundTrip:true});
+  if(f.distanceMi!==1200||f.gallons!==40||f.cost!==140) throw new Error(JSON.stringify(f));"
+
+flow "reorder keeps stop notes attached to the moved stop" "
+  const L=require('./js/logic.js');
+  const r=L.reorderStop([{name:'A'},{name:'GC',notes:'sunrise'},{name:'C'}],1,0);
+  if(r[0].name!=='GC'||r[0].notes!=='sunrise') throw new Error('notes lost on move');
+  if(r[2].name!=='C') throw new Error('wrong order');"
+
+flow "full plan math: daily drive, fill-ups, summary" "
+  const L=require('./js/logic.js');
+  const fuel=L.estimateFuel({distanceMi:1100,mpg:25,gasPrice:4});
+  const daily=L.dailyDriveHours(fuel.distanceMi,4);
+  if(daily!==5) throw new Error('daily drive: '+daily);
+  if(L.fillUps(fuel.gallons,12)!==4) throw new Error('fillups: '+L.fillUps(fuel.gallons,12));
+  const b=L.budgetSummary({fuelCost:fuel.cost,lodgingPerNight:120,nights:3,foodPerDay:60,days:4,activitiesCost:100});
+  const t=L.tripSummaryText({name:'West',origin:'Denver',destination:'Vegas',distanceMi:fuel.distanceMi,driveHours:L.driveTimeHours(fuel.distanceMi,55),dailyDriveHours:daily,gallons:fuel.gallons,fuelCost:fuel.cost,fillUps:L.fillUps(fuel.gallons,12),lodging:b.lodging,food:b.food,activities:b.activities,total:b.total,perDay:L.perDayCost(b.total,4),days:4,itinerary:L.buildItinerary({days:4,stops:[{name:'GC'}]})});
+  if(t.indexOf('Denver → Vegas')===-1) throw new Error('route missing');
+  if(t.indexOf('Day 1: GC')===-1) throw new Error('itinerary missing');"
+
 echo "--- e2e: $pass passed, $fail failed ---"
 exit $((fail>0))

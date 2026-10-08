@@ -17,10 +17,22 @@
     el.innerHTML = waypoints.map((w, i) =>
       "<div class='wp-row'><span class='wp-dot'>" + (i + 1) + "</span><span class='wp-body'><strong>" + escapeHtml(w.name) + "</strong>" +
       (w.notes ? " <span class='muted'>— " + escapeHtml(w.notes) + "</span>" : "") + "</span>" +
-      "<button class='danger' data-wp='" + i + "'>Remove</button></div>"
+      "<span class='wp-btns'><button data-wpup='" + i + "'" + (i === 0 ? " disabled" : "") + " title='Move up'>↑</button>" +
+      "<button data-wpdn='" + i + "'" + (i === waypoints.length - 1 ? " disabled" : "") + " title='Move down'>↓</button>" +
+      "<button class='danger' data-wp='" + i + "'>Remove</button></span></div>"
     ).join("") || "<p class='muted'>No stops yet — add your first stop above.</p>";
     el.querySelectorAll("[data-wp]").forEach((b) => b.addEventListener("click", () => {
       waypoints.splice(parseInt(b.getAttribute("data-wp"), 10), 1);
+      renderWaypoints();
+    }));
+    el.querySelectorAll("[data-wpup]").forEach((b) => b.addEventListener("click", () => {
+      const i = parseInt(b.getAttribute("data-wpup"), 10);
+      waypoints = reorderStop(waypoints, i, i - 1);
+      renderWaypoints();
+    }));
+    el.querySelectorAll("[data-wpdn]").forEach((b) => b.addEventListener("click", () => {
+      const i = parseInt(b.getAttribute("data-wpdn"), 10);
+      waypoints = reorderStop(waypoints, i, i + 1);
       renderWaypoints();
     }));
   }
@@ -31,6 +43,7 @@
       origin: $("origin").value.trim(), destination: $("destination").value.trim(),
       days: $("days").value, distanceMi: $("distance").value,
       mpg: $("mpg").value, gasPrice: $("gasPrice").value,
+      tankGal: $("tankGal").value, roundTrip: $("roundTrip").checked,
       lodgingPerNight: $("lodging").value, nights: $("nights").value,
       foodPerDay: $("food").value, activitiesCost: $("activities").value
     };
@@ -38,23 +51,29 @@
 
   function plan() {
     const v = currentInputs();
-    const fuel = estimateFuel({ distanceMi: v.distanceMi, mpg: v.mpg, gasPrice: v.gasPrice });
+    const fuel = estimateFuel({ distanceMi: v.distanceMi, mpg: v.mpg, gasPrice: v.gasPrice, roundTrip: v.roundTrip });
     const days = Math.max(1, parseInt(v.days, 10) || 1);
     const itin = buildItinerary({ days, stops: waypoints });
     const budget = budgetSummary({
       fuelCost: fuel.cost, lodgingPerNight: v.lodgingPerNight, nights: v.nights,
       foodPerDay: v.food, days: days, activitiesCost: v.activitiesCost
     });
+    const driveHours = driveTimeHours(fuel.distanceMi, 55);
+    const dailyDrive = dailyDriveHours(fuel.distanceMi, days, 55);
+    const fillups = fillUps(fuel.gallons, v.tankGal);
+    const perDay = perDayCost(budget.total, days);
 
     let html = "<div class='journey-head'><p class='kicker'>Journey board</p><h2>" + escapeHtml(v.name) + "</h2>";
-    if (v.origin || v.destination) html += "<p class='muted route'>" + escapeHtml(v.origin) + " → " + escapeHtml(v.destination) + "</p>";
+    if (v.origin || v.destination) html += "<p class='muted route'>" + escapeHtml(v.origin) + " → " + escapeHtml(v.destination) + (v.roundTrip ? " ↩ round trip" : "") + "</p>";
     html += "</div>";
 
     html += "<div class='stats'>";
-    html += stat("Fuel", money(fuel.cost), fuel.gallons + " gal");
-    html += stat("Drive time", fuel.distanceMi ? driveTimeHours(v.distanceMi, 55) + " h" : "—", "at ~55 mph avg");
-    html += stat("Total budget", money(budget.total), money(perDayCost(budget.total, days)) + " / day");
+    html += stat("Fuel", money(fuel.cost), fuel.gallons + " gal · ~" + fillups + " fill-up" + (fillups === 1 ? "" : "s"));
+    html += stat("Drive time", driveHours + " h", "~" + dailyDrive + " h/day at ~55 mph avg");
+    html += stat("Total budget", money(budget.total), money(perDay) + " / day");
     html += "</div>";
+
+    html += "<div class='actions'><button id='copySummary' class='btn'>Copy trip summary</button></div>";
 
     html += "<h3>Day-by-day itinerary</h3>";
     for (const d of itin) {
@@ -77,6 +96,19 @@
 
     $("result").innerHTML = html;
     $("result").style.display = "block";
+    const summaryText = tripSummaryText({
+      name: v.name, origin: v.origin, destination: v.destination, roundTrip: v.roundTrip,
+      distanceMi: fuel.distanceMi, driveHours: driveHours, dailyDriveHours: dailyDrive,
+      gallons: fuel.gallons, fuelCost: fuel.cost, fillUps: fillups,
+      lodging: budget.lodging, food: budget.food, activities: budget.activities,
+      total: budget.total, perDay: perDay, days: days, itinerary: itin
+    });
+    $("copySummary").addEventListener("click", () => {
+      const btn = $("copySummary");
+      const done = () => { btn.textContent = "Copied!"; setTimeout(() => { btn.textContent = "Copy trip summary"; }, 1200); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(summaryText).then(done, done);
+      else done();
+    });
     $("result").querySelectorAll("[data-pack]").forEach((cb) => cb.addEventListener("change", () => {
       let p = JSON.parse(localStorage.getItem("roadtrip.packed.v1") || "[]");
       const i = parseInt(cb.getAttribute("data-pack"), 10);
@@ -110,7 +142,8 @@
       if (!t) return;
       $("tripName").value = t.name; $("origin").value = t.origin || ""; $("destination").value = t.destination || "";
       $("days").value = t.days; $("distance").value = t.distanceMi; $("mpg").value = t.mpg;
-      $("gasPrice").value = t.gasPrice; $("lodging").value = t.lodgingPerNight; $("nights").value = t.nights;
+      $("gasPrice").value = t.gasPrice; $("tankGal").value = t.tankGal || 12; $("roundTrip").checked = !!t.roundTrip;
+      $("lodging").value = t.lodgingPerNight; $("nights").value = t.nights;
       $("food").value = t.foodPerDay; $("activities").value = t.activitiesCost;
       waypoints = t.waypoints || []; renderWaypoints(); plan();
     }));
