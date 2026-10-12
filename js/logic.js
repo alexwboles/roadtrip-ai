@@ -64,6 +64,66 @@ function dailyDriveHours(distanceMi, days, avgMph) {
   return Math.round(driveTimeHours(distanceMi, avgMph) / d * 10) / 10;
 }
 
+// Max-daily-drive planning: does the trip need more days to stay under the
+// driver's daily limit? -> { driveHours, days, dailyDrive, daysNeeded, over }.
+function planDriveDays(distanceMi, days, avgMph, maxDailyHrs) {
+  const mph = Math.max(1, parseFloat(avgMph) || 55);
+  const dist = Math.max(0, parseFloat(distanceMi) || 0);
+  const total = driveTimeHours(dist, mph);
+  const max = Math.max(1, parseFloat(maxDailyHrs) || 8);
+  const d = Math.max(1, parseInt(days, 10) || 1);
+  const perDay = total <= 0 ? 0 : Math.round(total / d * 10) / 10;
+  return {
+    driveHours: total,
+    days: d,
+    maxDailyHrs: max,
+    dailyDrive: perDay,
+    daysNeeded: total <= 0 ? 1 : Math.ceil(total / max),
+    over: total > 0 && perDay > max
+  };
+}
+
+// Stamp real calendar dates onto itinerary days: { day, date: "Mon 10/13" }.
+// Empty startDate -> date stays "" (backwards compatible).
+function itineraryWithDates(itinerary, startDate) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(startDate || ""));
+  const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const p2 = (n) => String(n).padStart(2, "0");
+  return (itinerary || []).map(function (d) {
+    if (!m) return Object.assign({}, d, { date: "" });
+    const dt = new Date(+m[1], +m[2] - 1, +m[3]);
+    dt.setDate(dt.getDate() + (d.day - 1));
+    const label = DOW[dt.getDay()] + " " + (dt.getMonth() + 1) + "/" + dt.getDate();
+    return Object.assign({}, d, {
+      date: label,
+      iso: dt.getFullYear() + "-" + p2(dt.getMonth() + 1) + "-" + p2(dt.getDate())
+    });
+  });
+}
+
+// Per-day load report: drive share + visit hours at each stop.
+// stop.hoursAt (optional) = hours planned at that stop.
+// dayBudgetHrs (default 12) = comfortable max per day; overloaded days flagged.
+function dayLoadReport(itinerary, dailyDriveHrs, dayBudgetHrs) {
+  const drive = Math.max(0, parseFloat(dailyDriveHrs) || 0);
+  const budget = Math.max(1, parseFloat(dayBudgetHrs) || 12);
+  return (itinerary || []).map(function (d) {
+    const visitHrs = (d.stops || []).reduce(function (s, stop) {
+      return s + Math.max(0, parseFloat(stop.hoursAt) || 0);
+    }, 0);
+    const total = Math.round((drive + visitHrs) * 10) / 10;
+    return {
+      day: d.day,
+      date: d.date || "",
+      driveHrs: drive,
+      visitHrs: Math.round(visitHrs * 10) / 10,
+      totalHrs: total,
+      budgetHrs: budget,
+      overloaded: total > budget
+    };
+  });
+}
+
 // Refuel stops needed, assuming you start with a full tank.
 function fillUps(gallons, tankGal) {
   const g = Math.max(0, parseFloat(gallons) || 0);
@@ -87,7 +147,7 @@ function tripSummaryText(o) {
     " (" + money(o.perDay || 0) + "/day over " + (o.days || 1) + " days)");
   (o.itinerary || []).forEach(function (d) {
     const stops = d.stops.map(function (s) { return s.name + (s.notes ? " (" + s.notes + ")" : ""); }).join("; ");
-    lines.push("Day " + d.day + ": " + (stops || "open road"));
+    lines.push("Day " + d.day + (d.date ? " (" + d.date + ")" : "") + ": " + (stops || "open road"));
   });
   return lines.join("\n");
 }
@@ -100,5 +160,5 @@ const CAR_ESSENTIALS = [
 ];
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { estimateFuel, buildItinerary, reorderStop, budgetSummary, perDayCost, driveTimeHours, dailyDriveHours, fillUps, tripSummaryText, CAR_ESSENTIALS };
+  module.exports = { estimateFuel, buildItinerary, reorderStop, budgetSummary, perDayCost, driveTimeHours, dailyDriveHours, planDriveDays, itineraryWithDates, dayLoadReport, fillUps, tripSummaryText, CAR_ESSENTIALS };
 }

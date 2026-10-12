@@ -16,7 +16,8 @@
     const el = $("wpList");
     el.innerHTML = waypoints.map((w, i) =>
       "<div class='wp-row'><span class='wp-dot'>" + (i + 1) + "</span><span class='wp-body'><strong>" + escapeHtml(w.name) + "</strong>" +
-      (w.notes ? " <span class='muted'>— " + escapeHtml(w.notes) + "</span>" : "") + "</span>" +
+      (w.notes ? " <span class='muted'>— " + escapeHtml(w.notes) + "</span>" : "") +
+      (w.hoursAt > 0 ? " <span class='hours-chip'>" + escapeHtml(String(w.hoursAt)) + "h</span>" : "") + "</span>" +
       "<span class='wp-btns'><button data-wpup='" + i + "'" + (i === 0 ? " disabled" : "") + " title='Move up'>↑</button>" +
       "<button data-wpdn='" + i + "'" + (i === waypoints.length - 1 ? " disabled" : "") + " title='Move down'>↓</button>" +
       "<button class='danger' data-wp='" + i + "'>Remove</button></span></div>"
@@ -45,7 +46,8 @@
       mpg: $("mpg").value, gasPrice: $("gasPrice").value,
       tankGal: $("tankGal").value, roundTrip: $("roundTrip").checked,
       lodgingPerNight: $("lodging").value, nights: $("nights").value,
-      foodPerDay: $("food").value, activitiesCost: $("activities").value
+      foodPerDay: $("food").value, activitiesCost: $("activities").value,
+      startDate: $("startDate").value, maxDrive: $("maxDrive").value
     };
   }
 
@@ -53,7 +55,9 @@
     const v = currentInputs();
     const fuel = estimateFuel({ distanceMi: v.distanceMi, mpg: v.mpg, gasPrice: v.gasPrice, roundTrip: v.roundTrip });
     const days = Math.max(1, parseInt(v.days, 10) || 1);
-    const itin = buildItinerary({ days, stops: waypoints });
+    const drivePlan = planDriveDays(fuel.distanceMi, days, 55, v.maxDrive);
+    const itin = itineraryWithDates(buildItinerary({ days, stops: waypoints }), v.startDate);
+    const loads = dayLoadReport(itin, drivePlan.dailyDrive, 12);
     const budget = budgetSummary({
       fuelCost: fuel.cost, lodgingPerNight: v.lodgingPerNight, nights: v.nights,
       foodPerDay: v.food, days: days, activitiesCost: v.activitiesCost
@@ -67,6 +71,12 @@
     if (v.origin || v.destination) html += "<p class='muted route'>" + escapeHtml(v.origin) + " → " + escapeHtml(v.destination) + (v.roundTrip ? " ↩ round trip" : "") + "</p>";
     html += "</div>";
 
+    if (drivePlan.over) {
+      html += "<div class='alert warn'><strong>Long driving days ahead.</strong> This plan averages " + drivePlan.dailyDrive +
+        " h/day behind the wheel, over your " + drivePlan.maxDailyHrs + " h limit. " +
+        "<button id='fixDays' class='btn small'>Use " + drivePlan.daysNeeded + " days instead</button></div>";
+    }
+
     html += "<div class='stats'>";
     html += stat("Fuel", money(fuel.cost), fuel.gallons + " gal · ~" + fillups + " fill-up" + (fillups === 1 ? "" : "s"));
     html += stat("Drive time", driveHours + " h", "~" + dailyDrive + " h/day at ~55 mph avg");
@@ -76,10 +86,17 @@
     html += "<div class='actions'><button id='copySummary' class='btn'>Copy trip summary</button></div>";
 
     html += "<h3>Day-by-day itinerary</h3>";
-    for (const d of itin) {
-      html += "<div class='day'><h4>Day " + d.day + "</h4>";
+    for (let di = 0; di < itin.length; di++) {
+      const d = itin[di];
+      const load = loads[di];
+      html += "<div class='day" + (load.overloaded ? " overloaded" : "") + "'><h4>Day " + d.day +
+        (d.date ? " <span class='day-date'>" + escapeHtml(d.date) + "</span>" : "") + "</h4>";
+      html += "<p class='day-load'>" + load.driveHrs + "h drive + " + load.visitHrs + "h at stops = <strong>" +
+        load.totalHrs + "h day</strong>" + (load.overloaded ? " <span class='over-tag'>overpacked</span>" : "") + "</p>";
       if (!d.stops.length) html += "<p class='muted'>Open road — no stops planned.</p>";
-      else html += "<ul>" + d.stops.map((s) => "<li><strong>" + escapeHtml(s.name) + "</strong>" + (s.notes ? " — " + escapeHtml(s.notes) : "") + "</li>").join("") + "</ul>";
+      else html += "<ul>" + d.stops.map((s) => "<li><strong>" + escapeHtml(s.name) + "</strong>" +
+        (s.notes ? " — " + escapeHtml(s.notes) : "") +
+        (s.hoursAt > 0 ? " <span class='hours-chip'>" + escapeHtml(String(s.hoursAt)) + "h</span>" : "") + "</li>").join("") + "</ul>";
       html += "</div>";
     }
 
@@ -96,6 +113,11 @@
 
     $("result").innerHTML = html;
     $("result").style.display = "block";
+    const fixBtn = $("fixDays");
+    if (fixBtn) fixBtn.addEventListener("click", () => {
+      $("days").value = drivePlan.daysNeeded;
+      plan();
+    });
     const summaryText = tripSummaryText({
       name: v.name, origin: v.origin, destination: v.destination, roundTrip: v.roundTrip,
       distanceMi: fuel.distanceMi, driveHours: driveHours, dailyDriveHours: dailyDrive,
@@ -145,6 +167,7 @@
       $("gasPrice").value = t.gasPrice; $("tankGal").value = t.tankGal || 12; $("roundTrip").checked = !!t.roundTrip;
       $("lodging").value = t.lodgingPerNight; $("nights").value = t.nights;
       $("food").value = t.foodPerDay; $("activities").value = t.activitiesCost;
+      $("startDate").value = t.startDate || ""; $("maxDrive").value = t.maxDrive || 8;
       waypoints = t.waypoints || []; renderWaypoints(); plan();
     }));
     el.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => {
@@ -157,8 +180,9 @@
     $("addWp").addEventListener("click", () => {
       const name = $("wpName").value.trim();
       if (!name) return;
-      waypoints.push({ name, notes: $("wpNotes").value.trim() });
-      $("wpName").value = ""; $("wpNotes").value = "";
+      const hoursAt = Math.max(0, parseFloat($("wpHours").value) || 0);
+      waypoints.push({ name, notes: $("wpNotes").value.trim(), hoursAt });
+      $("wpName").value = ""; $("wpNotes").value = ""; $("wpHours").value = "";
       renderWaypoints();
     });
     $("planBtn").addEventListener("click", plan);

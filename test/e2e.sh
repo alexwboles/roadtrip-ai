@@ -59,5 +59,20 @@ flow "full plan math: daily drive, fill-ups, summary" "
   if(t.indexOf('Denver → Vegas')===-1) throw new Error('route missing');
   if(t.indexOf('Day 1: GC')===-1) throw new Error('itinerary missing');"
 
+flow "drive-day recommendation, dates, and day load" "
+  const L=require('./js/logic.js');
+  const dp=L.planDriveDays(1000,2,55,8);
+  if(!dp.over||dp.daysNeeded!==3) throw new Error('should recommend 3 days');
+  const dp2=L.planDriveDays(1000,dp.daysNeeded,55,8);
+  if(dp2.over||dp2.dailyDrive!==6.1) throw new Error('fixed plan: '+JSON.stringify(dp2));
+  const itin=L.itineraryWithDates(L.buildItinerary({days:3,stops:[{name:'GC',hoursAt:4},{name:'Canyon'}]}),'2026-10-12');
+  if(itin[0].date!=='Mon 10/12') throw new Error('date: '+itin[0].date);
+  const loads=L.dayLoadReport(itin,dp2.dailyDrive,12);
+  if(loads[0].totalHrs!==10.1||loads[0].overloaded) throw new Error('day1 load: '+JSON.stringify(loads[0]));
+  const heavy=L.dayLoadReport([{day:1,stops:[{name:'Museum',hoursAt:7}]}],6,12);
+  if(!heavy[0].overloaded) throw new Error('13h day should be overpacked');
+  const t=L.tripSummaryText({name:'West',days:3,itinerary:itin});
+  if(t.indexOf('Day 1 (Mon 10/12):')===-1) throw new Error('dated summary: '+t);"
+
 echo "--- e2e: $pass passed, $fail failed ---"
 exit $((fail>0))

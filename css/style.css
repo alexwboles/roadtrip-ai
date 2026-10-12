@@ -201,3 +201,13 @@ ul.pack input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--ac
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- drive-day warning + day load (sharp edges) ---------- */
+.alert { border: 1px solid; padding: .8rem 1rem; margin-bottom: 1rem; }
+.alert.warn { background: #fef6e7; border-color: #e8c96a; color: #6b4e12; }
+.alert .btn { margin-left: .5rem; }
+.day-date { font-size: .8em; color: var(--accent-deep); font-weight: 400; }
+.day-load { font-size: .85rem; color: #55606e; margin: -.25rem 0 .5rem; }
+.day.overloaded { background: #fdf0ed; }
+.over-tag { background: #c0392b; color: #fff; padding: .1rem .45rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.hours-chip { background: var(--accent-soft); color: var(--accent-deep); border: 1px solid var(--accent); padding: .05rem .4rem; font-size: .75rem; font-weight: 700; }

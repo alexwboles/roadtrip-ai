@@ -72,11 +72,50 @@ check "tripSummaryText builds shareable text" node -e "
   if(!/Day 1: GC \(sunrise\)/.test(t)) throw new Error('day1 stops');
   if(!/Day 2: open road/.test(t)) throw new Error('day2 empty');
   if(!/\\\$700\\.00/.test(t)) throw new Error('total money');"
+check "planDriveDays recommends more days over the limit" node -e "
+  const L=require('./js/logic.js');
+  const p=L.planDriveDays(1000,2,55,8);
+  if(!p.over) throw new Error('1000mi/2d should be over an 8h limit');
+  if(p.daysNeeded!==3) throw new Error('daysNeeded: '+p.daysNeeded);
+  if(p.dailyDrive!==9.1) throw new Error('dailyDrive: '+p.dailyDrive);
+  const ok=L.planDriveDays(1000,3,55,8);
+  if(ok.over) throw new Error('3 days should fit');
+  if(ok.daysNeeded!==3) throw new Error('daysNeeded fits');
+  const zero=L.planDriveDays(0,2,55,8);
+  if(zero.over||zero.daysNeeded!==1) throw new Error('zero distance');
+  const def=L.planDriveDays(500,1);
+  if(def.maxDailyHrs!==8) throw new Error('default 8h limit');"
+check "itineraryWithDates stamps calendar dates" node -e "
+  const L=require('./js/logic.js');
+  const itin=L.itineraryWithDates([{day:1,stops:[]},{day:2,stops:[]},{day:3,stops:[]}],'2026-10-12');
+  if(itin[0].date!=='Mon 10/12') throw new Error('day1: '+itin[0].date);
+  if(itin[1].date!=='Tue 10/13') throw new Error('day2: '+itin[1].date);
+  if(itin[2].iso!=='2026-10-14') throw new Error('iso: '+itin[2].iso);
+  const blank=L.itineraryWithDates([{day:1,stops:[]}],'');
+  if(blank[0].date!=='') throw new Error('blank start keeps empty date');
+  const bad=L.itineraryWithDates([{day:1,stops:[]}],'not-a-date');
+  if(bad[0].date!=='') throw new Error('bad date keeps empty date');"
+check "dayLoadReport flags overpacked days" node -e "
+  const L=require('./js/logic.js');
+  const itin=[{day:1,date:'Mon 10/12',stops:[{name:'A',hoursAt:3},{name:'B',hoursAt:2}]},{day:2,date:'Tue 10/13',stops:[{name:'C'}]}];
+  const r=L.dayLoadReport(itin,6,12);
+  if(r[0].visitHrs!==5||r[0].totalHrs!==11||r[0].overloaded) throw new Error('day1: '+JSON.stringify(r[0]));
+  if(r[1].visitHrs!==0||r[1].totalHrs!==6) throw new Error('day2: '+JSON.stringify(r[1]));
+  const heavy=L.dayLoadReport([{day:1,stops:[{name:'A',hoursAt:8}]}],6,12);
+  if(!heavy[0].overloaded) throw new Error('14h day should flag overloaded');"
+check "tripSummaryText includes itinerary dates" node -e "
+  const L=require('./js/logic.js');
+  const t=L.tripSummaryText({name:'T',days:1,itinerary:[{day:1,date:'Mon 10/12',stops:[{name:'GC'}]}]});
+  if(!/Day 1 \\(Mon 10\\/12\\): GC/.test(t)) throw new Error('dated day line: '+t);"
 check "new UI wiring present" bash -c "
   grep -q 'id=\"roundTrip\"' index.html && grep -q 'id=\"tankGal\"' index.html &&
   grep -q 'copySummary' js/app.js && grep -q 'data-wpup' js/app.js &&
   grep -q 'data-wpdn' js/app.js && grep -q 'tripSummaryText' js/app.js &&
-  grep -q 'dailyDriveHours' js/app.js && grep -q 'wp-btns' css/style.css"
+  grep -q 'dailyDriveHours' js/app.js && grep -q 'wp-btns' css/style.css &&
+  grep -q 'id=\"startDate\"' index.html && grep -q 'id=\"maxDrive\"' index.html &&
+  grep -q 'id=\"wpHours\"' index.html && grep -q 'planDriveDays' js/app.js &&
+  grep -q 'itineraryWithDates' js/app.js && grep -q 'dayLoadReport' js/app.js &&
+  grep -q 'fixDays' js/app.js && grep -q 'alert.warn' css/style.css"
 
 echo "--- smoke: $pass passed, $fail failed ---"
 exit $((fail>0))
