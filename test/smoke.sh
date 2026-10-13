@@ -128,5 +128,21 @@ check "avgSpeed input wired into app" bash -c "
   grep -q '@media print' css/style.css &&
   grep -q 'no-print' css/style.css"
 
+check "route timeline in app.js" grep -q "class='route'" js/app.js
+check "day nodes in app.js" grep -q "rdot" js/app.js
+check "day effort bars in app.js" grep -q "daybar" js/app.js
+check "route CSS present" grep -q ".rday" css/style.css
+check "itinerary day-load math" node -e "
+  const L = require('./js/logic.js');
+  const itin = L.itineraryWithDates(L.buildItinerary({ days: 4, stops: [ { name: 'A', hoursAt: 3 }, { name: 'B', hoursAt: 2 }, { name: 'C', hoursAt: 1 } ] }), '2026-11-03');
+  if (itin.length !== 4 || itin[0].date !== 'Tue 11/3') throw new Error('dates: ' + JSON.stringify(itin.map(d => d.date)));
+  const loads = L.dayLoadReport(itin, 5.5, 12);
+  if (loads[0].visitHrs !== 3 || loads[0].totalHrs !== 8.5) throw new Error('day1 load: ' + JSON.stringify(loads[0]));
+  if (loads[3].visitHrs !== 0 || loads[3].totalHrs !== 5.5) throw new Error('day4 load');
+  if (loads.some(l => l.overloaded)) throw new Error('nothing should be overloaded');
+  const heavy = L.dayLoadReport(itin, 11, 12);
+  if (!heavy[0].overloaded) throw new Error('11h drive + 3h visit should overload');
+"
+
 echo "--- smoke: $pass passed, $fail failed ---"
 exit $((fail>0))

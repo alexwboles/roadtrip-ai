@@ -223,3 +223,19 @@ ul.pack input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--ac
   .day.overloaded { background: #f5f5f5 !important; }
   .over-tag { background: #000 !important; color: #fff !important; }
 }
+
+/* ---------- route-timeline itinerary ---------- */
+.route{position:relative;padding-left:2.4rem;margin-top:.4rem}
+.route::before{content:"";position:absolute;left:.85rem;top:.6rem;bottom:.6rem;width:3px;background:var(--line)}
+.rday{position:relative;margin-bottom:1.1rem;background:var(--card);border:1px solid var(--line);padding:1rem 1.2rem;box-shadow:var(--shadow)}
+.rdot{position:absolute;left:-2.4rem;top:1rem;width:1.75rem;height:1.75rem;margin-left:-.025rem;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;font-variant-numeric:tabular-nums}
+.rday.overloaded .rdot{background:var(--rust)}
+.rday h4{margin:0 0 .2rem}
+.day-date{font-size:.8rem;color:var(--muted);font-weight:600}
+.daybar{display:flex;height:8px;background:#ece3cd;margin:.55rem 0 .3rem;overflow:hidden}
+.daybar .drive{background:var(--accent)}
+.daybar .visit{background:var(--rust)}
+.day-load{font-size:.9rem;margin:.2rem 0 .5rem}
+.over-tag{display:inline-block;background:var(--rust);color:#fff;font-size:.72rem;font-weight:700;padding:.1rem .5rem;margin-left:.4rem;text-transform:uppercase;letter-spacing:.06em}
+.rbody ul{margin:.3rem 0 0;padding-left:1.1rem}
+.rbody li{margin-bottom:.25rem}

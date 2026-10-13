@@ -88,20 +88,24 @@
     html += "<div class='actions no-print'><button id='copySummary' class='btn'>Copy trip summary</button> " +
       "<button id='printItin' class='btn'>Print itinerary</button></div>";
 
-    html += "<h3>Day-by-day itinerary</h3>";
+    html += "<h3>Day-by-day itinerary</h3><div class='route'>";
     for (let di = 0; di < itin.length; di++) {
       const d = itin[di];
       const load = loads[di];
-      html += "<div class='day" + (load.overloaded ? " overloaded" : "") + "'><h4>Day " + d.day +
-        (d.date ? " <span class='day-date'>" + escapeHtml(d.date) + "</span>" : "") + "</h4>";
+      const driveW = Math.min(100, Math.round(load.driveHrs / load.budgetHrs * 100));
+      const visitW = Math.min(100 - driveW, Math.round(load.visitHrs / load.budgetHrs * 100));
+      html += "<div class='rday" + (load.overloaded ? " overloaded" : "") + "'><span class='rdot'>" + d.day + "</span><div class='rbody'>" +
+        "<h4>Day " + d.day + (d.date ? " <span class='day-date'>" + escapeHtml(d.date) + "</span>" : "") + "</h4>";
+      html += "<div class='daybar' title='" + load.driveHrs + "h drive + " + load.visitHrs + "h at stops'><i class='drive' style='width:" + driveW + "%'></i><i class='visit' style='width:" + visitW + "%'></i></div>";
       html += "<p class='day-load'>" + load.driveHrs + "h drive + " + load.visitHrs + "h at stops = <strong>" +
         load.totalHrs + "h day</strong>" + (load.overloaded ? " <span class='over-tag'>overpacked</span>" : "") + "</p>";
       if (!d.stops.length) html += "<p class='muted'>Open road — no stops planned.</p>";
       else html += "<ul>" + d.stops.map((s) => "<li><strong>" + escapeHtml(s.name) + "</strong>" +
         (s.notes ? " — " + escapeHtml(s.notes) : "") +
         (s.hoursAt > 0 ? " <span class='hours-chip'>" + escapeHtml(String(s.hoursAt)) + "h</span>" : "") + "</li>").join("") + "</ul>";
-      html += "</div>";
+      html += "</div></div>";
     }
+    html += "</div>";
 
     html += "<h3>Budget breakdown</h3><table class='budget'><tbody>" +
       row("Fuel", budget.fuel) + row("Lodging (" + (parseInt(v.nights, 10) || 0) + " nights)", budget.lodging) +

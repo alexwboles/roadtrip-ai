@@ -97,5 +97,12 @@ flow "print + copy UI wired" "
   if(css.indexOf('@media print')===-1) throw new Error('print CSS missing');
   if(html.indexOf('id=\"avgSpeed\"')===-1) throw new Error('avgSpeed input missing');"
 
+flow "overpacked day is flagged when drive+visit exceeds budget" "
+  const L=require('./js/logic.js');
+  const itin=L.buildItinerary({days:2,stops:[{name:'X',hoursAt:6}]});
+  const loads=L.dayLoadReport(itin,8,12);
+  if(!loads[0].overloaded||loads[0].totalHrs!==14) throw new Error(JSON.stringify(loads[0]));
+  if(loads[1].overloaded) throw new Error('day 2 should be fine');"
+
 echo "--- e2e: $pass passed, $fail failed ---"
 exit $((fail>0))
