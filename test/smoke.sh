@@ -117,5 +117,16 @@ check "new UI wiring present" bash -c "
   grep -q 'itineraryWithDates' js/app.js && grep -q 'dayLoadReport' js/app.js &&
   grep -q 'fixDays' js/app.js && grep -q 'alert.warn' css/style.css"
 
+check "avg-speed math: speed scales drive time" node -e "
+  const L=require('./js/logic.js');
+  const slow=L.planDriveDays(600,4,50,8), fast=L.planDriveDays(600,4,75,8);
+  if(slow.driveHours!==12||fast.driveHours!==8) throw new Error('speed must scale drive time');
+  if(slow.dailyDrive!==3||fast.dailyDrive!==2) throw new Error('per-day must scale');"
+check "avgSpeed input wired into app" bash -c "
+  grep -q 'id=\"avgSpeed\"' index.html &&
+  grep -q 'printItin' js/app.js && grep -q 'fallbackCopy' js/app.js &&
+  grep -q '@media print' css/style.css &&
+  grep -q 'no-print' css/style.css"
+
 echo "--- smoke: $pass passed, $fail failed ---"
 exit $((fail>0))

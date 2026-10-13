@@ -211,3 +211,15 @@ ul.pack input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--ac
 .day.overloaded { background: #fdf0ed; }
 .over-tag { background: #c0392b; color: #fff; padding: .1rem .45rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .hours-chip { background: var(--accent-soft); color: var(--accent-deep); border: 1px solid var(--accent); padding: .05rem .4rem; font-size: .75rem; font-weight: 700; }
+
+/* ---------- print itinerary ---------- */
+@media print {
+  .hero, .planner, .actions.center, .no-print, footer.foot,
+  main.wrap > section.card:last-of-type { display: none !important; }
+  body { background: #fff; color: #000; }
+  .wrap { max-width: 100%; padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ccc; }
+  #result { display: block !important; }
+  .day.overloaded { background: #f5f5f5 !important; }
+  .over-tag { background: #000 !important; color: #fff !important; }
+}

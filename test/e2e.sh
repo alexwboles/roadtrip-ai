@@ -74,5 +74,28 @@ flow "drive-day recommendation, dates, and day load" "
   const t=L.tripSummaryText({name:'West',days:3,itinerary:itin});
   if(t.indexOf('Day 1 (Mon 10/12):')===-1) throw new Error('dated summary: '+t);"
 
+flow "custom avg speed changes drive estimates end-to-end" "
+  const L=require('./js/logic.js');
+  // same 600 miles: slower speed -> more drive time -> may trip the max-drive warning
+  const slowPlan=L.planDriveDays(600,1,50,8);
+  const fastPlan=L.planDriveDays(600,2,75,8);
+  if(!slowPlan.over) throw new Error('50mph single day should exceed 8h/day limit');
+  if(fastPlan.over) throw new Error('75mph over 3 days should fit the limit');
+  if(slowPlan.driveHours!==12||fastPlan.driveHours!==8) throw new Error('drive hours wrong');
+  // summary still honest about the numbers
+  const t=L.tripSummaryText({name:'Slow trip',distanceMi:600,driveHours:slowPlan.driveHours,dailyDriveHours:slowPlan.dailyDrive,days:1});
+  if(t.indexOf('drive time ~12 h')===-1) throw new Error('summary: '+t);"
+
+flow "print + copy UI wired" "
+  const fs=require('fs');
+  const html=fs.readFileSync('index.html','utf8');
+  const app=fs.readFileSync('js/app.js','utf8');
+  const css=fs.readFileSync('css/style.css','utf8');
+  if(!/id=\"printItin\"|'printItin'/.test(app)) throw new Error('print button missing');
+  if(!/fallbackCopy/.test(app)) throw new Error('clipboard fallback missing');
+  if(/else done\\(\\);\\s*$/.test(app)) throw new Error('old silent-copied bug still present');
+  if(css.indexOf('@media print')===-1) throw new Error('print CSS missing');
+  if(html.indexOf('id=\"avgSpeed\"')===-1) throw new Error('avgSpeed input missing');"
+
 echo "--- e2e: $pass passed, $fail failed ---"
 exit $((fail>0))

@@ -47,7 +47,8 @@
       tankGal: $("tankGal").value, roundTrip: $("roundTrip").checked,
       lodgingPerNight: $("lodging").value, nights: $("nights").value,
       foodPerDay: $("food").value, activitiesCost: $("activities").value,
-      startDate: $("startDate").value, maxDrive: $("maxDrive").value
+      startDate: $("startDate").value, maxDrive: $("maxDrive").value,
+      avgSpeed: Math.max(1, parseFloat($("avgSpeed").value) || 55) || 55
     };
   }
 
@@ -55,15 +56,16 @@
     const v = currentInputs();
     const fuel = estimateFuel({ distanceMi: v.distanceMi, mpg: v.mpg, gasPrice: v.gasPrice, roundTrip: v.roundTrip });
     const days = Math.max(1, parseInt(v.days, 10) || 1);
-    const drivePlan = planDriveDays(fuel.distanceMi, days, 55, v.maxDrive);
+    const mph = Math.max(1, parseFloat(v.avgSpeed) || 55) || 55;
+    const drivePlan = planDriveDays(fuel.distanceMi, days, mph, v.maxDrive);
     const itin = itineraryWithDates(buildItinerary({ days, stops: waypoints }), v.startDate);
     const loads = dayLoadReport(itin, drivePlan.dailyDrive, 12);
     const budget = budgetSummary({
       fuelCost: fuel.cost, lodgingPerNight: v.lodgingPerNight, nights: v.nights,
       foodPerDay: v.food, days: days, activitiesCost: v.activitiesCost
     });
-    const driveHours = driveTimeHours(fuel.distanceMi, 55);
-    const dailyDrive = dailyDriveHours(fuel.distanceMi, days, 55);
+    const driveHours = driveTimeHours(fuel.distanceMi, mph);
+    const dailyDrive = dailyDriveHours(fuel.distanceMi, days, mph);
     const fillups = fillUps(fuel.gallons, v.tankGal);
     const perDay = perDayCost(budget.total, days);
 
@@ -79,11 +81,12 @@
 
     html += "<div class='stats'>";
     html += stat("Fuel", money(fuel.cost), fuel.gallons + " gal · ~" + fillups + " fill-up" + (fillups === 1 ? "" : "s"));
-    html += stat("Drive time", driveHours + " h", "~" + dailyDrive + " h/day at ~55 mph avg");
+    html += stat("Drive time", driveHours + " h", "~" + dailyDrive + " h/day at ~" + mph + " mph avg");
     html += stat("Total budget", money(budget.total), money(perDay) + " / day");
     html += "</div>";
 
-    html += "<div class='actions'><button id='copySummary' class='btn'>Copy trip summary</button></div>";
+    html += "<div class='actions no-print'><button id='copySummary' class='btn'>Copy trip summary</button> " +
+      "<button id='printItin' class='btn'>Print itinerary</button></div>";
 
     html += "<h3>Day-by-day itinerary</h3>";
     for (let di = 0; di < itin.length; di++) {
@@ -127,10 +130,16 @@
     });
     $("copySummary").addEventListener("click", () => {
       const btn = $("copySummary");
-      const done = () => { btn.textContent = "Copied!"; setTimeout(() => { btn.textContent = "Copy trip summary"; }, 1200); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(summaryText).then(done, done);
-      else done();
+      const orig = btn.textContent;
+      const done = () => { btn.textContent = "Copied!"; setTimeout(() => { btn.textContent = orig; }, 1200); };
+      const fail = () => { btn.textContent = "Copy failed — long-press to select & copy"; setTimeout(() => { btn.textContent = orig; }, 2500); };
+      // Bug fix: previously showed "Copied!" even when nothing was copied.
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(summaryText).then(done, () => fallbackCopy(summaryText) ? done() : fail());
+      } else if (fallbackCopy(summaryText)) done();
+      else fail();
     });
+    $("printItin").addEventListener("click", () => window.print());
     $("result").querySelectorAll("[data-pack]").forEach((cb) => cb.addEventListener("change", () => {
       let p = JSON.parse(localStorage.getItem("roadtrip.packed.v1") || "[]");
       const i = parseInt(cb.getAttribute("data-pack"), 10);
@@ -150,6 +159,22 @@
     return "<div class='stat'><div class='s-label'>" + label + "</div><div class='s-big'>" + big + "</div><div class='s-small'>" + small + "</div></div>";
   }
   function row(label, val) { return "<tr><td>" + escapeHtml(label) + "</td><td>" + money(val) + "</td></tr>"; }
+
+  // Legacy-browser / non-secure-context clipboard fallback.
+  function fallbackCopy(text) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) { return false; }
+  }
 
   function renderSaved() {
     const trips = loadTrips();
